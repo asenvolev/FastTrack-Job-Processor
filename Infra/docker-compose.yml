@@ -1,0 +1,38 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: my-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build:
+      context: ../Backend
+      dockerfile: Dockerfile
+    container_name: job-backend
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      MONGODB_URI: "mongodb://mongo:27017/jobprocessorDB"
+      SHARED_SECRET: "your-very-secret-value"
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ../Frontend
+      dockerfile: Dockerfile
+    container_name: job-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80" 
+
+volumes:
+  mongo_data:
